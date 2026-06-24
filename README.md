@@ -1,11 +1,11 @@
 # Costura da Dorinha — Sistema de Controle de Pedidos
 
-Este é um monorepo fullstack desenvolvido em TypeScript para gerenciar e analisar os pedidos da costureira.
+Aplicação fullstack criada para organizar os pedidos de costura da Dorinha 🧵. Registra serviços, calcula totais e exibe gráficos de faturamento mensal.
 
 O projeto conta com:
-- **Backend:** Node.js + Express + TypeScript + Prisma ORM + PostgreSQL.
-- **Frontend:** React + TypeScript + Vite + Recharts + CSS Puro (Visual de tons terrosos, limpo e acolhedor).
-- **Infraestrutura:** PostgreSQL 15 e Backend orquestrados via Docker Compose.
+- **Backend:** Node.js + Express + TypeScript + Prisma ORM + PostgreSQL
+- **Frontend:** React + Next.js + TypeScript + Recharts
+- **Infraestrutura:** PostgreSQL via Docker Compose
 
 ---
 
@@ -13,16 +13,18 @@ O projeto conta com:
 
 ```text
 dorinha-costura/
-├── frontend/          # React App + Vite
+├── frontend/          # Next.js + React + Recharts
 │   ├── src/           # Componentes, estilos e tipos
 │   └── package.json
 ├── backend/           # Node.js + Express + Prisma
-│   ├── src/           # Controladores e inicialização
-│   ├── prisma/        # Schemas, migrações e scripts de seed
+│   ├── src/           # Controladores, serviços e repositórios (DDD)
+│   ├── prisma/        # Schema, migrações e seed
 │   ├── Dockerfile
 │   └── package.json
-├── docker-compose.yml # PostgreSQL + Backend Docker setup
-├── package.json       # Monorepo workspaces
+├── .env               # Variáveis de ambiente (não commitar)
+├── .env.example       # Template das variáveis de ambiente
+├── docker-compose.yml # PostgreSQL via Docker
+├── package.json       # Monorepo workspaces (npm)
 └── README.md
 ```
 
@@ -30,90 +32,83 @@ dorinha-costura/
 
 ## Pré-requisitos
 
-Certifique-se de ter instalado em sua máquina:
-- **Node.js** (versão 18 ou superior)
-- **npm** (versão 9 ou superior)
+- **Node.js** v18 ou superior
+- **npm** v9 ou superior
 - **Docker** e **Docker Compose**
 
 ---
 
-## Como Rodar o Projeto
+## 🚀 Primeira vez — Passo a passo completo
 
-### 1. Iniciar o Banco de Dados (Docker)
+### 1. Clonar o repositório
 
-No diretório raiz (`dorinha-costura/`), suba **apenas o banco de dados** PostgreSQL:
+```bash
+git clone https://github.com/M0ria/dorinha-costura.git
+cd dorinha-costura
+```
+
+### 2. Configurar as variáveis de ambiente
+
+Copie o arquivo de exemplo e ajuste se necessário:
+
+```bash
+cp .env.example .env
+```
+
+O `.env` já vem com as credenciais padrão prontas para uso local. Só altere se quiser usar um usuário/senha diferente.
+
+### 3. Instalar as dependências
+
+```bash
+npm install
+```
+
+### 4. Subir o banco de dados
 
 ```bash
 sudo docker-compose up -d db
 ```
 
-*Nota: Dependendo da configuração do seu sistema operacional, pode ser necessário executar o comando com `sudo`:*
+Aguarde o container iniciar (leva alguns segundos). O PostgreSQL estará disponível em `localhost:5432`.
+
+### 5. Executar as migrações
+
+Cria as tabelas no banco de dados:
 
 ```bash
-sudo docker-compose up -d --build
+npm run prisma:migrate --workspace=backend
 ```
 
-Ao subir pela primeira vez:
-- O banco de dados PostgreSQL estará acessível na porta `5432`.
-- O backend e o frontend rodam **localmente** (ver próximo passo).
-
-> **Modo produção** (tudo no Docker): use `sudo docker-compose --profile prod up -d --build`.
-> Nesse modo o backend roda no container e **não** use `npm run dev` simultaneamente.
-
-### 2. Iniciar Backend e Frontend
-
-Com o banco rodando, suba os dois servidores locais de uma só vez na raiz do monorepo:
-
-```bash
-npm run dev
-```
-
-- **Backend** → http://localhost:3001 (logs em azul `[backend]`)
-- **Frontend** → http://localhost:5173 (logs em verde `[frontend]`)
-
-Na **primeira execução**, popule o banco de dados com os pedidos de exemplo:
+### 6. Popular o banco com dados de exemplo (seed)
 
 ```bash
 npm run prisma:seed --workspace=backend
 ```
 
----
+Isso insere 16 pedidos fictícios para que os gráficos e tabelas já mostrem dados ao abrir o sistema.
 
-## Funcionalidades do Sistema
-
-O sistema é composto por 3 abas principais:
-
-1. **Novo pedido:** Formulário com validações integradas para registrar novos pedidos (calculando custos de material, mão de obra e total automaticamente). Apresenta um campo de descrição condicional para tipos de serviço classificados como "Outro". Ao salvar, exibe um Toast de confirmação e atualiza as listagens.
-2. **Pedidos:** Cards de métricas superiores (Total de pedidos, Faturamento e Ticket médio) seguidos por uma listagem de todos os pedidos cadastrados, acompanhados de badges estilizados por categoria e opção de exclusão.
-3. **Análise:** Painel com o faturamento e estatísticas do negócio com três gráficos interativos (feitos com a biblioteca Recharts):
-   - Frequência de pedidos por tipo.
-   - Faturamento por tipo de serviço.
-   - Evolução mensal de faturamento e quantidade de pedidos.
-
----
-
-## Desenvolvimento Local (Sem Docker)
-
-Se desejar executar o projeto localmente sem Docker (requer um PostgreSQL local rodando na porta 5432):
-
-1. Crie um arquivo `backend/.env` e insira a string de conexão apropriada:
-   ```env
-   DATABASE_URL="postgresql://usuario:senha@localhost:5432/dorinha_costura?schema=public"
-   PORT=3001
-   ```
-2. Instale as dependências na raiz: `npm install`
-3. Execute as migrações: `npm run prisma:migrate --workspace=backend`
-4. Popule o banco: `npm run prisma:seed --workspace=backend`
-
-### Rodar tudo de uma vez
-
-Para subir **backend e frontend simultaneamente** em um único terminal com logs coloridos:
+### 7. Subir o backend e o frontend
 
 ```bash
 npm run dev
 ```
 
-> O terminal exibirá os logs do backend com prefixo azul `[backend]` e do frontend com prefixo verde `[frontend]`.
+- **Frontend** → http://localhost:5173 (logs em verde `[frontend]`)
+- **Backend**  → http://localhost:3001 (logs em azul `[backend]`)
+
+---
+
+## Uso no dia a dia
+
+Após a primeira configuração, basta:
+
+```bash
+# 1. Garantir que o banco está rodando
+sudo docker-compose up -d db
+
+# 2. Subir tudo
+npm run dev
+```
 
 ### Rodar separadamente
 
@@ -124,3 +119,24 @@ npm run backend:dev
 # Apenas o frontend (porta 5173)
 npm run frontend:dev
 ```
+
+### Modo produção (tudo no Docker)
+
+```bash
+sudo docker-compose --profile prod up -d --build
+```
+
+> ⚠️ Nesse modo o backend roda no container — não use `npm run dev` simultaneamente.
+
+---
+
+## Funcionalidades
+
+O sistema é composto por 3 abas principais:
+
+1. **Novo Pedido** — Formulário para registrar serviços (Ajuste, Confecção, Conserto, Reforma ou Outro), com cálculo automático de totais e campo de descrição condicional para serviços "Outro".
+2. **Pedidos** — Cards de métricas (total de pedidos, faturamento e ticket médio) + listagem completa com badges por categoria e opção de exclusão.
+3. **Análise** — Painel com três gráficos interativos (Recharts):
+   - Frequência de pedidos por tipo
+   - Faturamento por tipo de serviço
+   - Evolução mensal de faturamento e quantidade de pedidos
