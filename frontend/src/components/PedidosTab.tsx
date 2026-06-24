@@ -33,9 +33,22 @@ export const PedidosTab: React.FC<PedidosTabProps> = ({ pedidos, onDelete, loadi
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const handleExportCSV = () => {
+    window.location.href = 'http://localhost:3001/api/pedidos/export';
+  };
+
   return (
     <div>
       <MetricsCards pedidos={pedidos} />
+
+      <div className="actions-bar">
+        <button className="btn-secondary" onClick={handleExportCSV}>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exportar CSV
+        </button>
+      </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#70625B', fontWeight: '500' }}>
