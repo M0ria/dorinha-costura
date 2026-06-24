@@ -5,10 +5,29 @@
 
 # --- 1. CARREGAMENTO DOS DADOS ----------------------------------
 
-# Opção A: importar o CSV exportado pelo sistema
-# (com o backend rodando, acesse http://localhost:3001/api/pedidos/export
-#  e salve o arquivo como "pedidos_dorinha.csv" na mesma pasta deste script)
-dados <- read.csv2("pedidos_dorinha.csv", fileEncoding = "UTF-8-BOM", stringsAsFactors = FALSE)
+# Verifica diferentes caminhos onde o CSV pode estar salvo
+possiveis_caminhos <- c(
+  "pedidos_dorinha.csv",
+  "backend/public/uploads/pedidos_dorinha.csv",
+  "backend/public/exports/pedidos_dorinha.csv",
+  "public/uploads/pedidos_dorinha.csv",
+  "public/exports/pedidos_dorinha.csv"
+)
+
+arquivo_csv <- NULL
+for (caminho in possiveis_caminhos) {
+  if (file.exists(caminho)) {
+    arquivo_csv <- caminho
+    break
+  }
+}
+
+if (is.null(arquivo_csv)) {
+  stop("Erro: Arquivo 'pedidos_dorinha.csv' não encontrado. Certifique-se de realizar o download/exportação pelo sistema primeiro.")
+}
+
+cat("Lendo arquivo de:", arquivo_csv, "\n")
+dados <- read.csv2(arquivo_csv, fileEncoding = "UTF-8-BOM", stringsAsFactors = FALSE)
 
 # Verificação inicial
 cat("=== ESTRUTURA DOS DADOS ===\n")
@@ -66,7 +85,7 @@ moda <- function(x) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
-cat("=== MEDIDAS DE TENDÊNCIA CENTRAL — VALOR TOTAL (R$) ===\n")
+cat("=== MEDIDAS DE TENDÊNCIA CENTRAL - VALOR TOTAL (R$) ===\n")
 cat("Média   :", round(mean(dados$total), 2), "\n")
 cat("Mediana :", round(median(dados$total), 2), "\n")
 cat("Moda    :", moda(dados$total), "\n\n")
@@ -80,7 +99,7 @@ cat("\n")
 
 # --- 5. MEDIDAS DE DISPERSÃO -----------------------------------
 
-cat("=== MEDIDAS DE DISPERSÃO — VALOR TOTAL (R$) ===\n")
+cat("=== MEDIDAS DE DISPERSÃO - VALOR TOTAL (R$) ===\n")
 variancia <- var(dados$total)
 desvio    <- sd(dados$total)
 cv        <- (desvio / mean(dados$total)) * 100
@@ -98,17 +117,17 @@ cat("\n")
 
 # --- 6. GRÁFICOS -----------------------------------------------
 
-# Configuração de layout: 2x2
-par(mfrow = c(2, 2), mar = c(5, 4, 4, 2))
+# Configuração de layout: 2x2. Aumentando a margem inferior (bottom) para acomodar os labels verticais
+par(mfrow = c(2, 2), mar = c(7, 4, 4, 2))
 
 ## 6.1 — Gráfico de Barras: Frequência por tipo
 barplot(
   freq_abs,
   main   = "Frequência de Pedidos por Tipo",
-  xlab   = "Tipo de Serviço",
+  xlab   = "",
   ylab   = "Quantidade de Pedidos",
   col    = c("#8B4513", "#D2691E", "#CD853F", "#DEB887", "#F4A460"),
-  las    = 1,
+  las    = 2,
   border = "white"
 )
 
@@ -127,8 +146,8 @@ hist(
 boxplot(
   total ~ tipo,
   data   = dados,
-  main   = "Boxplot — Valor Total por Tipo de Serviço",
-  xlab   = "Tipo de Serviço",
+  main   = "Boxplot - Valor Total por Tipo de Serviço",
+  xlab   = "",
   ylab   = "Valor Total (R$)",
   col    = c("#8B4513", "#D2691E", "#CD853F", "#DEB887", "#F4A460"),
   border = "#5C2E00",
@@ -141,7 +160,7 @@ barplot(
   fat_tipo$total,
   names.arg = fat_tipo$tipo,
   main      = "Faturamento Total por Tipo (R$)",
-  xlab      = "Tipo de Serviço",
+  xlab      = "",
   ylab      = "Faturamento (R$)",
   col       = c("#8B4513", "#D2691E", "#CD853F", "#DEB887", "#F4A460"),
   border    = "white",
