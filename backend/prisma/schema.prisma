@@ -1,0 +1,22 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Pedido {
+  id        String   @id @default(uuid())
+  cliente   String
+  tipo      String
+  descricao String?
+  material  Float
+  maoDeObra Float
+  total     Float
+  data      DateTime
+  criadoEm  DateTime @default(now())
+
+  @@map("pedidos")
+}

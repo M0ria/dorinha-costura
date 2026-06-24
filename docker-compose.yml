@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: dorinha_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=${TZ}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dorinha_network
+
+  backend:
+    profiles: [prod]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dorinha_backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      - PORT=${PORT}
+      - TZ=${TZ}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dorinha_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dorinha_network:
+    name: dorinha_network
+    driver: bridge

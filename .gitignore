@@ -1,0 +1,18 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+.next/
+
+# Variáveis de ambiente (nunca commitar o .env real)
+.env
+backend/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
