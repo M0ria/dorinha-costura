@@ -73,6 +73,38 @@ export class PedidoController {
       res.status(500).json({ error: error.message || 'Erro ao gerar análise' });
     }
   }
+
+  public async exportCsv(req: Request, res: Response): Promise<void> {
+    try {
+      const pedidoService = container.resolve(PedidoService);
+      const { csv, filePath } = await pedidoService.exportarCsv();
+
+      console.log(`[CSV] Arquivo salvo em: ${filePath}`);
+
+      // Envia também como download no navegador
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="pedidos_dorinha.csv"');
+      res.send(csv);
+    } catch (error: any) {
+      console.error('Erro no controller exportCsv:', error);
+      res.status(500).json({ error: error.message || 'Erro ao exportar CSV' });
+    }
+  }
+
+  public async uploadFile(req: Request, res: Response): Promise<Response> {
+    try {
+      const files = req.files ? Array.prototype.slice.call(req.files) : [];
+      const file: Express.Multer.File = files[0];
+
+      const pedidoService = container.resolve(PedidoService);
+      const result = await pedidoService.processUpload(file);
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      console.error('Erro no controller uploadFile:', error);
+      return res.status(400).json({ error: error.message || 'Erro ao processar arquivo' });
+    }
+  }
 }
 
 export default new PedidoController();

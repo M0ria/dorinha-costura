@@ -3,6 +3,8 @@ import { IPedidoRepository } from '../../domain/repositories/IPedidoRepository';
 import { Pedido } from '../../domain/entities/Pedido';
 import { PrismaPedidoRepository } from '../../infrastructure/repositories/PrismaPedidoRepository';
 import { RepositoryToken } from '../../infrastructure/di/RepositoryToken';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface CreatePedidoDto {
   cliente: string;
@@ -115,6 +117,48 @@ export class PedidoService {
     return {
       porTipo,
       porMes
+    };
+  }
+
+  public async exportarCsv(): Promise<{ csv: string; filePath: string }> {
+    const pedidos = await this.repository.findAll();
+
+    const header = 'cliente;tipo;descricao;material;maoDeObra;total;data';
+    const rows = pedidos.map((p) => {
+      const data = new Date(p.getData()).toLocaleDateString('pt-BR');
+      const descricao = p.getDescricao() ?? '';
+      return `${p.getCliente()};${p.getTipo()};${descricao};${p.getMaterial()};${p.getMaoDeObra()};${p.getTotal()};${data}`;
+    });
+
+    // BOM UTF-8
+    const csv = '\uFEFF' + [header, ...rows].join('\n');
+
+    // Salva baseado no ENV ou public/exports
+    const baseDir = process.env.FILES_PATH ? path.resolve(process.env.FILES_PATH) : path.resolve(__dirname, '../../../../../public/exports');
+    fs.mkdirSync(baseDir, { recursive: true });
+    
+    const filePath = path.join(baseDir, 'pedidos_dorinha.csv');
+    fs.writeFileSync(filePath, csv, 'utf-8');
+    
+    return { csv, filePath };
+  }
+
+  public async processUpload(file: Express.Multer.File): Promise<any> {
+    if (!file) {
+      throw new Error('Nenhum arquivo enviado.');
+    }
+    
+    // Aqui você pode adicionar lógica de processamento do arquivo (ex: ler CSV e criar pedidos, ou associar imagem a um pedido)
+    // Para simplificar, vamos retornar as informações do arquivo processado com sucesso.
+    return {
+      message: 'Arquivo processado com sucesso',
+      fileInfo: {
+        filename: file.filename,
+        originalName: file.originalname,
+        size: file.size,
+        path: file.path,
+        mimetype: file.mimetype,
+      }
     };
   }
 }
